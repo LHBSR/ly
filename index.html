@@ -271,7 +271,10 @@ sendOrder.addEventListener('click', async ()=>{
   fd.append('amount', amount);
 
   try{
-    const res = await fetch(WEBHOOK_URL, { method:'POST', body: fd });
+ const res = await fetch("https://ly-8ze5.onrender.com/submit-order", {
+  method: "POST",
+  body: fd
+});
     if(!res.ok) throw new Error('network');
     const json = await res.json().catch(()=>({ok:false}));
     if(res.ok && (json.ok || json.success || json.status === 'ok')) {
