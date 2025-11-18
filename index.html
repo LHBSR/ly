@@ -247,7 +247,7 @@ window.addEventListener('load', ()=>{
 
 /* Send files as FormData (includes up to 2 receipt images) */
 sendOrder.addEventListener('click', async ()=>{
-  const receipt1 = document.getElementById('receiptImg').files[0];
+  const receipt = document.getElementById('receiptImg').files[0];
   const receipt2 = document.getElementById('receiptImg2').files[0];
   const snap = document.getElementById('snapImg').files[0];
 
