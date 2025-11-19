@@ -1,33 +1,35 @@
-// server.js
-// Express server (ES modules). Accepts files from index.html and optionally forwards to Telegram.
+// server.js — يعمل مع Render، يستقبل 3 ملفات ويرسلهم للتليجرام
+
 import express from "express";
 import cors from "cors";
 import multer from "multer";
 import path from "path";
-import { fileURLToPath } from "url";
 import fs from "fs";
+import { fileURLToPath } from "url";
 import axios from "axios";
 import FormData from "form-data";
 import dotenv from "dotenv";
 
 dotenv.config();
 
+// Paths
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Express setup
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// serve static (your front-end files)
-app.use(express.static(path.join(__dirname, "public")));
+// Serve static files from root (index.html موجود في root)
+app.use(express.static(__dirname));
 
-// upload dir
+// Upload folder
 const UPLOAD_DIR = path.join(__dirname, "uploads");
 if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
-// multer storage + safe filename
+// Multer storage
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, UPLOAD_DIR),
   filename: (_req, file, cb) => {
@@ -37,65 +39,58 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ storage, limits: { fileSize: 20 * 1024 * 1024 } }); // 20MB
+const upload = multer({
+  storage,
+  limits: { fileSize: 20 * 1024 * 1024 }
+});
 
-// fields expected from your front-end
 const uploadFields = upload.fields([
   { name: "receipt", maxCount: 1 },
   { name: "receipt2", maxCount: 1 },
   { name: "snap", maxCount: 1 }
 ]);
 
-// Telegram config (optional)
-const TG_TOKEN = process.env.TG_BOT_TOKEN || "";
-const TG_CHAT_ID = process.env.TG_CHAT_ID || "";
+// Telegram config (لازم تضيف القيم في Render)
+const TG_TOKEN = 7962189544:AAGnHP_sVWB4AhnOr8-0vX9OVmgMPGT_bvQ;
+const TG_CHAT_ID = 7965779016;
 
-/**
- * Send a single file to Telegram as document using axios+form-data.
- * Returns Telegram response object or throws.
- */
-async function sendFileToTelegram(filePath, caption = "") {
-  if (!TG_TOKEN || !TG_CHAT_ID) {
-    return { ok: false, description: "Telegram token/chat not configured" };
-  }
-  const url = https://api.telegram.org/bot${TG_TOKEN}/sendDocument;
-  const form = new FormData();
-  form.append("chat_id", TG_CHAT_ID);
-  if (caption) form.append("caption", caption);
-  form.append("document", fs.createReadStream(filePath));
+// send file to Telegram
+async function sendToTelegram(filePath, caption = "") {
+  const url = `https://api.telegram.org/bot${TG_TOKEN}/sendDocument`;
 
-  const headers = form.getHeaders();
-  const res = await axios.post(url, form, { headers, timeout: 30000 });
+  const fd = new FormData();
+  fd.append("chat_id", TG_CHAT_ID);
+  fd.append("caption", caption);
+  fd.append("document", fs.createReadStream(filePath));
+
+  const headers = fd.getHeaders();
+
+  const res = await axios.post(url, fd, { headers });
   return res.data;
 }
 
+// /submit-order
 app.post("/submit-order", (req, res) => {
   uploadFields(req, res, async function (err) {
     if (err) {
-      console.error("Upload error:", err && err.message ? err.message : err);
-      return res.status(400).json({ ok: false, error: err.message || "upload_error" });
+      console.error("Upload error:", err);
+      return res.status(400).json({ ok: false, error: err.message });
     }
 
     try {
       const files = req.files || {};
-      // require at least receipt and snap
-      if (!files.receipt  !files.receipt.length  !files.snap || !files.snap.length) {
-        // remove any uploaded files in this request to avoid leftover files
-        Object.values(files).flat().forEach((f) => {
-          try { fs.unlinkSync(f.path); } catch (e) { /* ignore */ }
-        });
+
+      if (!files.receipt || !files.snap) {
         return res.status(400).json({ ok: false, error: "receipt_and_snap_required" });
       }
 
-      // build saved files summary
       const saved = [];
       for (const key of ["receipt", "receipt2", "snap"]) {
         if (files[key] && files[key].length) {
           const f = files[key][0];
           saved.push({
             field: key,
-            originalName: f.originalname,
-            savedAs: path.basename(f.path),
+            name: f.filename,
             size: f.size,
             path: f.path
           });
@@ -103,14 +98,40 @@ app.post("/submit-order", (req, res) => {
       }
 
       const { service_title, amount } = req.body;
-      console.log("New order received:", { service_title, amount, files: saved.map(s => ({ field: s.field, savedAs: s.savedAs })) });
 
-      // optionally send to Telegram (if configured)
-      const telegramResults = [];
-      if (TG_TOKEN && TG_CHAT_ID) {
-        const caption = طلب جديد\nخدمة: ${service_title || "غير محدد"}\nالمبلغ: ${amount || "غير محدد"};
-        for (const fileObj of saved) {
-          try {
-            console.log("Sending to Telegram:", fileObj.path);
-            const tgRes = await sendFileToTelegram(fileObj.path, caption);
-            telegramResults.push({ file: fileObj.savedAs, telegram: tgRes });ole.log(`Server listening on ${PORT}`));
+      // send files to Telegram
+      for (const file of saved) {
+        try {
+          await sendToTelegram(
+            file.path,
+            `طلب جديد\nالخدمة: ${service_title}\nالمبلغ: ${amount}`
+          );
+        } catch (e) {
+          console.error("Telegram error:", e.message);
+        }
+      }
+
+      return res.json({
+        ok: true,
+        message: "Order received",
+        files: saved
+      });
+
+    } catch (e) {
+      console.error("Server error:", e);
+      return res.status(500).json({ ok: false, error: "server_error" });
+    }
+  });
+});
+
+// health
+app.get("/_health", (_req, res) => res.send("ok"));
+
+// index.html
+app.get("*", (_req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
+
+// start
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on ${PORT}`));
