@@ -51,8 +51,8 @@ const uploadFields = upload.fields([
 ]);
 
 // Telegram config (لازم تضيف القيم في Render)
-const TG_TOKEN = 7962189544:AAGnHP_sVWB4AhnOr8-0vX9OVmgMPGT_bvQ;
-const TG_CHAT_ID = 7965779016;
+const TG_TOKEN = process.env.TG_BOT_TOKEN;
+const TG_CHAT_ID = process.env.TG_CHAT_ID;
 
 // send file to Telegram
 async function sendToTelegram(filePath, caption = "") {
