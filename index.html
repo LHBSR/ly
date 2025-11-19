@@ -215,81 +215,94 @@
   </div>
 
 <script>
-/* Webhook URL */
+/* Webhook URL - غيّره إذا تحتاج */
 const WEBHOOK_URL = 'https://ly-8ze5.onrender.com/submit-order';
 
 /* Modal controls + animation */
 const modal = document.getElementById('modal');
-const dialog = modal.querySelector('.modal');
+const dialog = modal && modal.querySelector('.modal');
 const buyNow = document.getElementById('buyNow');
 const closeBtn = document.getElementById('closeModalBtn');
 const sendOrder = document.getElementById('sendOrder');
 const statusMsg = document.getElementById('statusMsg');
 
 function openModal(){
+  if(!modal || !dialog) return;
   modal.style.display = 'flex';
   modal.setAttribute('aria-hidden','false');
-  // force reflow to restart animation
   dialog.classList.remove('show'); void dialog.offsetWidth; dialog.classList.add('show');
 }
 function closeModal(){
+  if(!modal || !dialog) return;
   dialog.classList.remove('show');
   setTimeout(()=>{ modal.style.display = 'none'; modal.setAttribute('aria-hidden','true'); }, 240);
 }
-buyNow.addEventListener('click', openModal);
-closeBtn.addEventListener('click', closeModal);
-modal.addEventListener('click', (e)=>{ if(e.target === modal) closeModal(); });
-
-/* Subtle initial fade-in sequencing (already classes in HTML) */
-window.addEventListener('load', ()=>{
-  // nothing needed; CSS animations will run.
-});
+if(buyNow) buyNow.addEventListener('click', openModal);
+if(closeBtn) closeBtn.addEventListener('click', closeModal);
+if(modal) modal.addEventListener('click', (e)=>{ if(e.target === modal) closeModal(); });
 
 /* Send files as FormData (includes up to 2 receipt images) */
-sendOrder.addEventListener('click', async ()=>{
-  const receipt = document.getElementById('receiptImg').files[0];
-  const receipt2 = document.getElementById('receiptImg2').files[0];
-  const snap = document.getElementById('snapImg').files[0];
+if(sendOrder){
+  sendOrder.addEventListener('click', async (e)=>{
+    e.preventDefault();
+    // read files
+    const receipt = document.getElementById('receiptImg')?.files[0];
+    const receipt2 = document.getElementById('receiptImg2')?.files[0];
+    const snap = document.getElementById('snapImg')?.files[0];
 
-  if(!receipt1 || !snap){
-    alert('الرجاء رفع صور تحويل الرسائل وصورة حساب السناب قبل الإرسال');
-    return;
-  }
+    console.log('DEBUG: files =>', { receipt, receipt2, snap });
 
-  statusMsg.style.display = 'block';
-  statusMsg.style.color = '#9aa3b2';
-  statusMsg.textContent = 'قيد المعالجة...';
-
-  const fd = new FormData();
-  fd.append('receipt', receipt1);
-  if(receipt2) fd.append('receipt2', receipt2);
-  fd.append('snap', snap);
-  fd.append('service_title', 'اشتراك سناب شات بلس');
-
-  // Determine selected amount (use order same as layout: first is Month6(90), second Month3(50))
-  const amount = 'LYD 90'; // default or you can implement selection logic later
-  fd.append('amount', amount);
-
-  try{
- const res = await fetch("https://ly-8ze5.onrender.com/submit-order", {
-  method: "POST",
-  body: fd
-});
-    if(!res.ok) throw new Error('network');
-    const json = await res.json().catch(()=>({ok:false}));
-    if(res.ok && (json.ok || json.success || json.status === 'ok')) {
-      statusMsg.style.color = '#2ecc71';
-      statusMsg.textContent = 'تم إرسال الطلب وسيتم معالجته';
-      setTimeout(()=>{ closeModal(); }, 1400);
-    } else {
-      statusMsg.style.color = '#ff6b6b';
-      statusMsg.textContent = 'حصل خطأ أثناء الإرسال. حاول مرة أخرى.';
+    if(!receipt || !snap){
+      alert('الرجاء رفع صورة الإيصال الأولى وصورة حساب السناب قبل الإرسال');
+      return;
     }
-  } catch(e){
-    statusMsg.style.color = '#ff6b6b';
-    statusMsg.textContent = 'فشل الإرسال. تحقق من اتصال الإنترنت أو إعدادات الخادم.';
-  }
-});
+
+    // disable button while sending
+    sendOrder.disabled = true;
+    sendOrder.style.opacity = '0.7';
+    statusMsg.style.display = 'block';
+    statusMsg.style.color = '#9aa3b2';
+    statusMsg.textContent = 'قيد المعالجة...';
+
+    const fd = new FormData();
+    fd.append('receipt', receipt);
+    if(receipt2) fd.append('receipt2', receipt2);
+    fd.append('snap', snap);
+    fd.append('service_title', 'اشتراك سناب شات بلس');
+    fd.append('amount', 'LYD 90');
+
+    try{
+      console.log('DEBUG: sending FormData keys ->', Array.from(fd.keys()));
+      const res = await fetch(WEBHOOK_URL, { method:'POST', body: fd });
+      console.log('DEBUG: fetch resolved, status =', res.status);
+      const text = await res.text().catch(()=>null);
+      console.log('DEBUG: response text ->', text);
+
+      // try parse json if possible
+      let json = null;
+      try { json = text ? JSON.parse(text) : null; } catch(e){ /* not json */ }
+
+      if(res.ok && (json && (json.ok || json.success) || res.status === 200)){
+        statusMsg.style.color = '#2ecc71';
+        statusMsg.textContent = 'تم إرسال الطلب وسيتم معالجته';
+        setTimeout(()=>{ closeModal(); }, 1400);
+      } else {
+        // show helpful message including server text
+        statusMsg.style.color = '#ff6b6b';
+        statusMsg.textContent = 'حصل خطأ أثناء الإرسال. ' + (text ? ('تفاصيل: ' + text) : '');
+      }
+    } catch(err){
+      console.error('DEBUG: sending error ->', err);
+      statusMsg.style.color = '#ff6b6b';
+      statusMsg.textContent = 'فشل الإرسال. تحقق من اتصال الإنترنت أو إعدادات الخادم.';
+    } finally {
+      sendOrder.disabled = false;
+      sendOrder.style.opacity = '1';
+    }
+  });
+} else {
+  console.warn('sendOrder button not found in DOM');
+}
 
 /* small parallax / subtle movement on mouse */
 document.addEventListener('pointermove', (e)=>{
@@ -298,8 +311,6 @@ document.addEventListener('pointermove', (e)=>{
   const card = document.querySelector('.center-card');
   if(card) card.style.transform = `translate3d(${x}px, ${y}px, 0)`;
 });
-
-/* press animation already handled by CSS .btn-pressable :active */
 </script>
 </body>
 </html>
