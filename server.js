@@ -2,38 +2,6 @@ const express = require('express');
 const multer = require('multer');
 const axios = require('axios');
 const FormData = require('form-data');
-const fs = require('fs');
-const path = require('path');
-
-const app = express();
-
-// middleware
-app.use(express.json());
-app.use(express.static('public'));
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
-  next();
-});
-
-// إعدادات التليجرام - ضعها هنا مباشرة أو في Secrets
-const BOT_TOKEN = process.env.BOT_TOKEN || 'ضع_توكن_البوت_هنا';
-const CHAT_ID = process.env.CHAT_ID || 'ضع_الـ_chat_id_هنا';
-
-// تخزين الملفات في الذاكرة فقط (مهم لـ Replit)
-const storage = multer.memoryStorage();
-const upload = multer({ 
-  storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 } // 5MB
-});
-
-const express = require('express');
-const multer = require('multer');
-const axios = require('axios');
-const FormData = require('form-data');
-const fs = require('fs');
-const path = require('path');
 
 const app = express();
 
@@ -58,20 +26,27 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 } // 5MB
 });
 
-// دالة إرسال للتليجرام - كل الصور في رسالة واحدة
+// دالة إرسال كل الصور في رسالة واحدة باستخدام Media Group
 async function sendToTelegram(files = []) {
   try {
     if (files.length === 0) return false;
+
+    const message = `🛒 طلب جديد - متجر لهيب
+
+⏰ الوقت: ${new Date().toLocaleString('ar-SA')}
+🆔 رقم الطلب: #${Date.now()}
+
+📸 تم رفع ${files.length} صورة`;
 
     // إذا كانت صورة واحدة فقط
     if (files.length === 1) {
       const formData = new FormData();
       formData.append('chat_id', CHAT_ID);
       formData.append('photo', files[0].buffer, {
-        filename: files[0].originalname,
+        filename: 'image.jpg',
         contentType: files[0].mimetype
       });
-      formData.append('caption', `🛒 طلب جديد - متجر لهيب\n\n⏰ الوقت: ${new Date().toLocaleString('ar-SA')}\n🆔 رقم الطلب: #${Date.now()}\n📸 تم رفع ${files.length} صورة`);
+      formData.append('caption', message);
 
       await axios.post(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, formData, {
         headers: formData.getHeaders()
@@ -79,21 +54,21 @@ async function sendToTelegram(files = []) {
     } 
     // إذا كانت أكثر من صورة - نستخدم Media Group
     else {
-      // أولاً نرسل الوسائط المتعددة
+      // تحضير الوسائط
       const media = files.map((file, index) => ({
         type: 'photo',
-        media: `attach://photo_${index}`,
-        caption: index === 0 ? `🛒 طلب جديد - متجر لهيب\n\n⏰ الوقت: ${new Date().toLocaleString('ar-SA')}\n🆔 رقم الطلب: #${Date.now()}\n📸 تم رفع ${files.length} صورة` : undefined
+        media: `attach://image${index}`,
+        caption: index === 0 ? message : ''
       }));
 
       const formData = new FormData();
       formData.append('chat_id', CHAT_ID);
       formData.append('media', JSON.stringify(media));
 
-      // إضافة كل الصور
+      // إضافة الصور
       files.forEach((file, index) => {
-        formData.append(`photo_${index}`, file.buffer, {
-          filename: file.originalname,
+        formData.append(`image${index}`, file.buffer, {
+          filename: `image${index}.jpg`,
           contentType: file.mimetype
         });
       });
@@ -105,31 +80,8 @@ async function sendToTelegram(files = []) {
     
     return true;
   } catch (error) {
-    console.error('خطأ في الإرسال:', error.response?.data || error.message);
-    
-    // إذا فشل Media Group، نرسل كل صورة منفردة
-    try {
-      for (const [index, file] of files.entries()) {
-        const formData = new FormData();
-        formData.append('chat_id', CHAT_ID);
-        formData.append('photo', file.buffer, {
-          filename: file.originalname,
-          contentType: file.mimetype
-        });
-        
-        if (index === 0) {
-          formData.append('caption', `🛒 طلب جديد - متجر لهيب\n\n⏰ الوقت: ${new Date().toLocaleString('ar-SA')}\n🆔 رقم الطلب: #${Date.now()}\n📸 تم رفع ${files.length} صورة`);
-        }
-
-        await axios.post(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, formData, {
-          headers: formData.getHeaders()
-        });
-      }
-      return true;
-    } catch (fallbackError) {
-      console.error('فشل الإرسال الاحتياطي:', fallbackError.message);
-      return false;
-    }
+    console.error('❌ خطأ في الإرسال:', error.response?.data || error.message);
+    return false;
   }
 }
 
@@ -142,13 +94,11 @@ app.post('/submit-order', upload.fields([
   try {
     const files = req.files;
 
-    console.log('📥 Received files:', files);
-
     // تجميع الملفات
     const uploadedFiles = [];
-    if (files.receipt) uploadedFiles.push(...files.receipt);
-    if (files.receipt2) uploadedFiles.push(...files.receipt2);
-    if (files.snap) uploadedFiles.push(...files.snap);
+    if (files.receipt) uploadedFiles.push(files.receipt[0]);
+    if (files.receipt2) uploadedFiles.push(files.receipt2[0]);
+    if (files.snap) uploadedFiles.push(files.snap[0]);
 
     if (uploadedFiles.length === 0) {
       return res.status(400).json({ 
@@ -169,7 +119,7 @@ app.post('/submit-order', upload.fields([
     } else {
       res.status(500).json({ 
         success: false, 
-        message: 'فشل في إرسال الطلب ' 
+        message: 'فشل في إرسال الطلب إلى التليجرام' 
       });
     }
   } catch (error) {
@@ -190,32 +140,7 @@ app.get('/', (req, res) => {
   });
 });
 
-// صفحة الصحة
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'healthy', 
-    service: 'Lheb Store Server',
-    version: '2.0.0'
-  });
-});
-
-// معالجة الأخطاء
-app.use((error, req, res, next) => {
-  if (error instanceof multer.MulterError) {
-    return res.status(400).json({
-      success: false,
-      message: 'حجم الملف كبير جداً'
-    });
-  }
-  res.status(500).json({
-    success: false,
-    message: 'حدث خطأ غير متوقع'
-  });
-});
-
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`✅ السيرفر شغال على البورت ${PORT}`);
-  console.log(`🤖 Bot Token: ${BOT_TOKEN ? '✅ مُعين' : '❌ غير معين'}`);
-  console.log(`💬 Chat ID: ${CHAT_ID ? '✅ مُعين' : '❌ غير معين'}`);
 });
