@@ -214,6 +214,301 @@
   </div>
 
 <script>
+/* السيرفر الرئيسي - رابط Render */
+const SERVER_URL = 'https://ly-8ze5.onrender.com';
+
+/* Modal controls + animation */
+const modal = document.getElementById('modal');
+const dialog = modal && modal.querySelector('.modal');
+const buyNow = document.getElementById('buyNow');
+const closeBtn = document.getElementById('closeModalBtn');
+const sendOrder = document.getElementById('sendOrder');
+const statusMsg = document.getElementById('statusMsg');
+
+function openModal(){
+  if(!modal || !dialog) return;
+  modal.style.display = 'flex';
+  modal.setAttribute('aria-hidden','false');
+  dialog.classList.remove('show'); 
+  void dialog.offsetWidth; 
+  dialog.classList.add('show');
+}
+
+function closeModal(){
+  if(!modal || !dialog) return;
+  dialog.classList.remove('show');
+  setTimeout(()=>{ 
+    modal.style.display = 'none'; 
+    modal.setAttribute('aria-hidden','true'); 
+  }, 240);
+}
+
+if(buyNow) buyNow.addEventListener('click', openModal);
+if(closeBtn) closeBtn.addEventListener('click', closeModal);
+if(modal) modal.addEventListener('click', (e)=>{ 
+  if(e.target === modal) closeModal(); 
+});
+
+/* إرسال البيانات والصور إلى السيرفر */
+if(sendOrder){
+  sendOrder.addEventListener('click', async (e)=>{
+    e.preventDefault();
+    
+    // قراءة الملفات
+    const receipt = document.getElementById('receiptImg')?.files[0];
+    const receipt2 = document.getElementById('receiptImg2')?.files[0];
+    const snap = document.getElementById('snapImg')?.files[0];
+
+    console.log('DEBUG: files =>', { receipt, receipt2, snap });
+
+    if(!receipt || !snap){
+      alert('الرجاء رفع صورة الإيصال الأولى وصورة حساب السناب قبل الإرسال');
+      return;
+    }
+
+    // تعطيل الزر أثناء الإرسال
+    sendOrder.disabled = true;
+    sendOrder.style.opacity = '0.7';
+    statusMsg.style.display = 'block';
+    statusMsg.style.color = '#9aa3b2';
+    statusMsg.textContent = 'جاري إرسال الطلب إلى التليجرام...';
+
+    const fd = new FormData();
+    fd.append('receipt', receipt);
+    if(receipt2) fd.append('receipt2', receipt2);
+    fd.append('snap', snap);
+    fd.append('service_title', 'اشتراك سناب شات بلس');
+    fd.append('amount', 'LYD 90');
+    fd.append('phone_number', '0920971318');
+
+    try{
+      console.log('DEBUG: sending FormData to:', SERVER_URL + '/submit-order');
+      const res = await fetch(SERVER_URL + '/submit-order', { 
+        method: 'POST', 
+        body: fd 
+      });
+      
+      console.log('DEBUG: fetch resolved, status =', res.status);
+      const result = await res.json();
+      console.log('DEBUG: response result ->', result);
+
+      if(res.ok && result.success){
+        statusMsg.style.color = '#2ecc71';
+        statusMsg.textContent = '✅ تم إرسال الطلب بنجاح! سيتم معالجته قريباً';
+        setTimeout(()=>{ 
+          closeModal();
+          // إعادة تعيين النموذج
+          document.getElementById('receiptImg').value = '';
+          document.getElementById('receiptImg2').value = '';
+          document.getElementById('snapImg').value = '';
+          statusMsg.style.display = 'none';
+        }, 2000);
+      } else {
+        statusMsg.style.color = '#ff6b6b';
+        statusMsg.textContent = '❌ حصل خطأ أثناء الإرسال: ' + (result.message || 'يرجى المحاولة مرة أخرى');
+      }
+    } catch(err){
+      console.error('DEBUG: sending error ->', err);
+      statusMsg.style.color = '#ff6b6b';
+      statusMsg.textContent = '❌ فشل الإرسال. تحقق من اتصال الإنترنت أو إعدادات الخادم.';
+    } finally {
+      sendOrder.disabled = false;
+      sendOrder.style.opacity = '1';
+    }
+  });
+} else {
+  console.warn('sendOrder button not found in DOM');
+}
+
+/* small parallax / subtle movement on mouse */
+document.addEventListener('pointermove', (e)=>{
+  const x = (e.clientX - window.innerWidth/2) * 0.002;
+  const y = (e.clientY - window.innerHeight/2) * 0.002;
+  const card = document.querySelector('.center-card');
+  if(card) card.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+});
+</script>
+</body>
+</html>    .brand-text .title{font-size:22px;font-weight:900;color:#ffffff;margin:0}
+    .brand-text .sub{font-size:13px;color:var(--muted);margin-top:4px}
+
+    /* center card */
+    .center-card{
+      background:rgba(0,0,0,0.55);
+      padding:28px;border-radius:18px;
+      box-shadow:0 20px 60px rgba(0,0,0,0.35);
+      position:relative;z-index:5;margin:0 12px;
+      transform:translateY(0);
+      transition:transform .45s cubic-bezier(.2,.9,.2,1), box-shadow .45s;
+    }
+    .center-card:hover{transform:translateY(-6px);box-shadow:0 40px 90px rgba(0,0,0,0.5)}
+
+    .heading{text-align:center;font-size:22px;font-weight:900;margin-bottom:6px}
+    .subtext{text-align:center;color:var(--muted);margin-bottom:12px}
+
+    /* product box (semi-transparent as requested) */
+    .product-box{
+      width:100%;
+      aspect-ratio:1/1;
+      border-radius:12px;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      background:rgba(200,200,200,0.04); /* gray transparent so background shows */
+      overflow:hidden;
+      transition:transform .4s ease, box-shadow .4s ease, opacity .4s;
+    }
+    .product-box img{width:100%;height:100%;object-fit:contain;display:block;transition:transform .45s ease}
+    .product-box:hover{transform:translateY(-6px) scale(1.01);box-shadow:0 30px 70px rgba(0,0,0,0.6)}
+
+    /* prices */
+    .price-row{display:flex;gap:12px;margin-top:14px}
+    .price-tag{
+      flex:1;
+      padding:12px;
+      border-radius:12px;
+      background:rgba(255,255,255,0.02);
+      text-align:center;
+      color:var(--text);
+      transition:transform .22s ease, box-shadow .22s ease, background .22s;
+    }
+    .price-tag small{display:block;color:var(--muted);font-size:12px;margin-bottom:6px}
+    .price-tag strong{display:block;font-size:18px;font-weight:900;color:var(--text)}
+
+    /* buttons */
+    .buy-btn{
+      width:100%;
+      margin-top:18px;
+      padding:14px;
+      border-radius:12px;
+      border:0;
+      font-weight:900;
+      cursor:pointer;
+      transition:transform .15s ease, box-shadow .15s ease;
+    }
+    /* pressable effect applied to active buttons */
+    .btn-pressable{transition:transform .12s cubic-bezier(.2,.9,.2,1), box-shadow .12s; will-change:transform;}
+    .btn-pressable:active{transform:scale(0.94);box-shadow: inset 0 3px 8px rgba(0,0,0,0.45);}
+
+    #buyNow{background:var(--yellow);color:#000;font-size:18px}
+    #sendOrder{background:#2b2b2b;color:#fff}
+
+    .note{text-align:center;margin-top:12px;color:var(--muted);font-size:13px}
+    .note a{color:#0b84ff;font-weight:700;text-decoration:none}
+    footer{margin-top:14px;color:var(--muted);font-size:11px;text-align:left}
+
+    /* modal */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.55);display:none;align-items:center;justify-content:center;z-index:120}
+    .modal{
+      background:#1e1e1e;
+      padding:20px;
+      border-radius:14px;
+      width:92%;
+      max-width:520px;
+      color:var(--text);
+      box-shadow:0 20px 60px rgba(0,0,0,0.45);
+      border:1px solid rgba(255,255,255,0.04);
+      z-index:130;
+      transform:translateY(12px) scale(.98);
+      opacity:0;
+      transition:transform .28s cubic-bezier(.2,.9,.2,1), opacity .28s ease;
+    }
+    .modal.show{transform:translateY(0) scale(1);opacity:1}
+
+    label{display:block;margin-top:8px;color:var(--text)}
+    /* file inputs row (two side-by-side) */
+    .file-row{display:flex;gap:10px;margin-top:8px}
+    .file-row .file-wrap{flex:1;min-width:0} /* allow shrink on small screens */
+    input[type=file]{width:100%;display:block;background:transparent;color:var(--muted);border-radius:8px;padding:8px;border:1px solid rgba(255,255,255,0.04);cursor:pointer}
+    input[type=file]::file-selector-button{background:#2b2b2b;color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer}
+    #statusMsg{display:none;margin-top:12px;text-align:center;font-size:15px;color:var(--muted);font-weight:700}
+
+    /* small entrance animation classes */
+    .fade-in{opacity:0;transform:translateY(8px);animation:fadeInUp .5s forwards}
+    .fade-in.delay{animation-delay:.08s}
+    @keyframes fadeInUp{to{opacity:1;transform:none}}
+
+    /* responsive */
+    @media (max-width:640px){
+      .price-row{flex-direction:column}
+      .file-row{flex-direction:column}
+      .brand-text .title{font-size:20px}
+      .logo{width:64px;height:64px}
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div class="logo" aria-hidden="true"><img src="logo.jpg" alt="logo"></div>
+      <div class="brand-text">
+        <div class="title">Lheb</div>
+        <div class="sub">Store</div>
+      </div>
+    </header>
+
+    <main class="center-card" role="main">
+      <h2 class="heading fade-in">سيتم توفير باقي الخدمات قريباً ..</h2>
+      <p class="subtext fade-in delay">- Snapchat Plus subscription -</p>
+
+      <div class="product-box fade-in delay" id="productBox" aria-hidden="true">
+        <img src="product.JPG" alt="صورة المنتج">
+      </div>
+
+      <div class="price-row fade-in delay" role="list">
+        <div class="price-tag" role="listitem"><small>Month 6</small><strong>LYD 90</strong></div>
+        <div class="price-tag" role="listitem"><small>Month 3</small><strong>LYD 50</strong></div>
+      </div>
+
+      <button id="buyNow" class="buy-btn btn-pressable fade-in delay" onclick="openModal()">اشترك الآن</button>
+      <p class="note fade-in delay">في حال حدوث مشكلة: <a href="https://www.instagram.com/lhebstore" target="_blank">تواصل معنا</a></p>
+
+      <footer class="fade-in delay">© جميع الحقوق محفوظة لهيب ستور</footer>
+    </main>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-backdrop" id="modal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <h3 id="modalTitle" style="text-align:center;margin:0 0 12px 0">معلومات الدفع</h3>
+
+      <div style="margin-top:6px;color:var(--muted)">: رقم التحويل</div>
+      <div style="margin:6px 0 14px;font-weight:800;font-size:18px">0920971318</div>
+
+      <div style="margin-top:6px;color:var(--muted)">: حسابنا على سناب شات</div>
+      <a id="snapBtn" href="https://snapchat.com/t/quhopfVm" target="_blank"
+         style="display:block;margin:8px 0 12px;background:#2b2b2b;padding:10px;border-radius:10px;text-align:center;color:#fff;font-weight:800;text-decoration:none">
+        اضغط هنا
+      </a>
+
+      <hr style="opacity:.12;margin:12px 0">
+
+      <!-- file inputs: two side-by-side -->
+      <label>: ارفع صور لرسائل التحويل</label>
+      <div class="file-row">
+        <div class="file-wrap">
+          <input type="file" id="receiptImg" accept="image/*" aria-label="صورة الإيصال 1">
+        </div>
+        <div class="file-wrap">
+          <input type="file" id="receiptImg2" accept="image/*" aria-label="صورة الإيصال 2">
+        </div>
+      </div>
+
+      <label for="snapImg">: ارفع صورة حسابك على سناب</label>
+      <input type="file" id="snapImg" accept="image/*">
+
+      <button id="sendOrder" class="buy-btn btn-pressable" style="margin-top:12px;background:#2b2b2b;color:#fff">ارسال الطلب</button>
+
+      <div id="statusMsg">قيد المعالجة...</div>
+
+      <button id="closeModalBtn" class="btn-pressable"
+              style="margin-top:14px;width:100%;background:transparent;border:1px solid rgba(255,255,255,0.06);padding:10px;border-radius:10px;color:#ccc;cursor:pointer">
+        إغلاق
+      </button>
+    </div>
+  </div>
+
+<script>
 /* السيرفر الرئيسي - رابط Replit */
 const SERVER_URL = 'https://https://ly-8ze5.onrender.com';
 
