@@ -165,8 +165,7 @@
         <div class="price-tag" role="listitem"><small>Month 3</small><strong>LYD 50</strong></div>
       </div>
 
-      <button id="buyNow" class="buy-btn btn-pressable fade-in delay">اشترك الآن</button>
-
+      <button id="buyNow" class="buy-btn btn-pressable fade-in delay" onclick="openModal()">اشترك الآن</button>
       <p class="note fade-in delay">في حال حدوث مشكلة: <a href="https://www.instagram.com/lhebstore" target="_blank">تواصل معنا</a></p>
 
       <footer class="fade-in delay">© جميع الحقوق محفوظة لهيب ستور</footer>
@@ -216,7 +215,7 @@
 
 <script>
 /* السيرفر الرئيسي - رابط Replit */
-const SERVER_URL = 'https://https://ly-8ze5.onrender.com/submit-order';
+const SERVER_URL = 'https://https://ly-8ze5.onrender.com';
 
 /* Modal controls + animation */
 const modal = document.getElementById('modal');
@@ -274,7 +273,7 @@ if(sendOrder){
     fd.append('phone_number', '0920971318');
 
     try{
-      console.log('DEBUG: sending FormData to:', SERVER_URL + '/submit-order');
+      console.log('DEBUG: sending FormData to:',https://ly-8ze5.onrender.com'/submit-order');
       const res = await fetch(https://ly-8ze5.onrender.com'/submit-order', { 
         method: 'POST', 
         body: fd 
