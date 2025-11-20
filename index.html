@@ -79,6 +79,12 @@
     }
     .price-tag small{display:block;color:var(--muted);font-size:12px;margin-bottom:6px}
     .price-tag strong{display:block;font-size:18px;font-weight:900;color:var(--text)}
+    .usdt-price {
+      color: var(--muted);
+      font-size: 14px;
+      margin-top: 4px;
+      font-weight: 600;
+    }
 
     /* buttons */
     .buy-btn{
@@ -146,6 +152,20 @@
       display: inline-block;
     }
 
+    /* payment methods */
+    .payment-method {
+      margin-bottom: 16px;
+    }
+    .payment-label {
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .payment-number {
+      font-weight: 800;
+      font-size: 18px;
+      margin: 6px 0;
+    }
+
     /* hover effects */
     #sendOrder:hover {
       background: #2ecc71 !important; /* أخضر عند hover */
@@ -197,8 +217,16 @@
       </div>
 
       <div class="price-row fade-in delay" role="list">
-        <div class="price-tag" role="listitem"><small>Month 6</small><strong>LYD 90</strong></div>
-        <div class="price-tag" role="listitem"><small>Month 3</small><strong>LYD 50</strong></div>
+        <div class="price-tag" role="listitem">
+          <small>Month 6</small>
+          <strong>LYD 90</strong>
+          <div class="usdt-price">8 USDT</div>
+        </div>
+        <div class="price-tag" role="listitem">
+          <small>Month 3</small>
+          <strong>LYD 50</strong>
+          <div class="usdt-price">5 USDT</div>
+        </div>
       </div>
 
       <button id="buyNow" class="buy-btn btn-pressable fade-in delay" onclick="openModal()">اشترك الآن</button>
@@ -213,8 +241,17 @@
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
       <h3 id="modalTitle" style="text-align:center;margin:0 0 12px 0">معلومات الدفع</h3>
 
-      <div style="margin-top:6px;color:var(--muted)">: رقم التحويل</div>
-      <div style="margin:6px 0 14px;font-weight:800;font-size:18px">0945792847</div>
+      <!-- طريقة الدفع الأولى: بينانس -->
+      <div class="payment-method">
+        <div class="payment-label">: Binance Pay ID</div>
+        <div class="payment-number">1032093477</div>
+      </div>
+
+      <!-- طريقة الدفع الثانية: رقم التحويل -->
+      <div class="payment-method">
+        <div class="payment-label">: رقم التحويل</div>
+        <div class="payment-number">0920971318</div>
+      </div>
 
       <div style="margin-top:6px;color:var(--muted)">: حسابنا على سناب شات</div>
       
