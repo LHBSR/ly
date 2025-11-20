@@ -263,7 +263,7 @@ if(sendOrder){
     sendOrder.style.opacity = '0.7';
     statusMsg.style.display = 'block';
     statusMsg.style.color = '#9aa3b2';
-    statusMsg.textContent = 'جاري إرسال الطلب إلى التليجرام...';
+    statusMsg.textContent = 'جاري إرسال الطلب ...';
 
     const fd = new FormData();
     fd.append('receipt', receipt);
@@ -275,7 +275,7 @@ if(sendOrder){
 
     try{
       console.log('DEBUG: sending FormData to:', SERVER_URL + '/submit-order');
-      const res = await fetch(SERVER_URL + '/submit-order', { 
+      const res = await fetch(https://ly-8ze5.onrender.com'/submit-order', { 
         method: 'POST', 
         body: fd 
       });
