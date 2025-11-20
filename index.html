@@ -215,10 +215,8 @@
   </div>
 
 <script>
-/* السيرفر الرئيسي - سيتغير تلقائياً عند الرفع على Railway */
-const SERVER_URL = window.location.hostname === 'localhost' 
-  ? 'http://localhost:3000' 
-  : 'https://your-app-name.railway.app';
+/* السيرفر الرئيسي - رابط Replit */
+const SERVER_URL = 'https://your-repl-name.username.repl.co';
 
 /* Modal controls + animation */
 const modal = document.getElementById('modal');
@@ -229,13 +227,13 @@ const sendOrder = document.getElementById('sendOrder');
 const statusMsg = document.getElementById('statusMsg');
 
 function openModal(){
-  if(!modal || !dialog) return;
+  if(!modal  !dialog) return;  // ← أضف  هنا
   modal.style.display = 'flex';
   modal.setAttribute('aria-hidden','false');
   dialog.classList.remove('show'); void dialog.offsetWidth; dialog.classList.add('show');
 }
 function closeModal(){
-  if(!modal || !dialog) return;
+  if(!modal  !dialog) return;  // ← أضف  هنا
   dialog.classList.remove('show');
   setTimeout(()=>{ modal.style.display = 'none'; modal.setAttribute('aria-hidden','true'); }, 240);
 }
