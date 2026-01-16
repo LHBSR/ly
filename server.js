@@ -86,24 +86,19 @@ async function sendToTelegram(files = []) {
 }
 
 // استقبال الطلبات
-app.post('/submit-order', upload.fields([
-  { name: 'receipt', maxCount: 1 },
-  { name: 'receipt2', maxCount: 1 },
-  { name: 'snap', maxCount: 1 }
-]), async (req, res) => {
+app.post('/submit-order', upload.any(), async (req, res) => {
   try {
-    const files = req.files;
-
-    // تجميع الملفات
+    // تجميع كل الصور المرفوعة (سواء من نتفلكس أو سناب)
     const uploadedFiles = [];
-    if (files.receipt) uploadedFiles.push(files.receipt[0]);
-    if (files.receipt2) uploadedFiles.push(files.receipt2[0]);
-    if (files.snap) uploadedFiles.push(files.snap[0]);
+
+    if (Array.isArray(req.files)) {
+      req.files.forEach(file => uploadedFiles.push(file));
+    }
 
     if (uploadedFiles.length === 0) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'لم يتم رفع أي صور' 
+      return res.status(400).json({
+        success: false,
+        message: 'لم يتم رفع أي صور'
       });
     }
 
