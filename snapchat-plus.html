@@ -237,7 +237,7 @@
   </div>
 
   <!-- Modal -->
-  <div class="modal-backdrop" id="modal" aria-hidden="true">
+   <div class="modal-backdrop" id="modal" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
       <h3 id="modalTitle" style="text-align:center;margin:0 0 12px 0">معلومات الدفع</h3>
 
@@ -253,11 +253,12 @@
         <div class="payment-number">0920971318</div>
       </div>
 
-      <div style="margin-top:6px;color:var(--muted)">: حسابنا على إنستغرام</div>
+      <div style="margin-top:6px;color:var(--muted)">: حسابنا على سناب شات</div>
       
+      <!-- زر السناب شات -->
       <div class="snap-btn-container">
-        <a href="https://www.instagram.com/lhebstore" target="_blank" class="snap-btn btn-pressable">
-          الرجاء التواصل معنا على هذا الحساب لإستكمال عملية الشراء
+        <a href="https://snapchat.com/t/fwVqkwo6">
+          اضغط هنا
         </a>
       </div>
 
@@ -274,7 +275,8 @@
         </div>
       </div>
 
-      
+      <label for="snapImg">: ارفع صورة حسابك على سناب</label>
+      <input type="file" id="snapImg" accept="image/*">
 
       <button id="sendOrder" class="buy-btn btn-pressable" style="margin-top:12px;background:#2b2b2b;color:#fff">ارسال الطلب</button>
 
@@ -401,33 +403,5 @@ document.addEventListener('pointermove', (e)=>{
   if(card) card.style.transform = `translate3d(${x}px, ${y}px, 0)`;
 });
 </script>
-
-<!-- Back Button -->
-
-
-
-
-
-
-<a href="index.html" aria-label="الرجوع للمتجر" style="
-position:fixed;
-top:14px;
-left:14px;
-width:40px;
-height:40px;
-border-radius:12px;
-background:rgba(0,0,0,0.55);
-display:flex;
-align-items:center;
-justify-content:center;
-color:#fff;
-text-decoration:none;
-font-size:22px;
-z-index:1000;
-backdrop-filter: blur(6px);
-">
-←
-</a>
-
 </body>
 </html>
