@@ -265,13 +265,13 @@
 
 
 <div style="display:flex;gap:14px;justify-content:center;align-items:center;margin:12px 0 14px 0">
-  <a href="https://wa.me/218920971318" target="_blank"
+  <a href="PUT_WHATSAPP_LINK_HERE" target="_blank"
      style="padding:8px 18px;border-radius:20px;
      border:1px solid rgba(255,255,255,.2);
      color:#e6eef8;text-decoration:none;font-size:14px">
      WhatsApp
   </a>
-  <a href="https://www.instagram.com/lhebstore?igsh=MXZvY3hrZWVzaTJkNw==" target="_blank"
+  <a href="PUT_INSTAGRAM_LINK_HERE" target="_blank"
      style="padding:8px 18px;border-radius:20px;
      border:1px solid rgba(255,255,255,.2);
      color:#e6eef8;text-decoration:none;font-size:14px">
@@ -382,15 +382,7 @@ if(sendOrder){
       if(res.ok && result.success){
         statusMsg.style.color = '#2ecc71';
         statusMsg.textContent = '✅ تم إرسال الطلب بنجاح! سيتم معالجته قريباً';
-        setTimeout(()=>{ 
-          closeModal();
-          // إعادة تعيين النموذج
-          document.getElementById('receiptImg').value = '';
-          document.getElementById('receiptImg2').value = '';
-          document.getElementById('snapImg').value = '';
-          statusMsg.style.display = 'none';
-        }, 2000);
-      } else {
+        } else {
         statusMsg.style.color = '#ff6b6b';
         statusMsg.textContent = '❌ حصل خطأ أثناء الإرسال: ' + (result.message || 'يرجى المحاولة مرة أخرى');
       }
@@ -443,7 +435,5 @@ backdrop-filter: blur(6px);
 ←
 </a>
 
-</body>
-</html>
 </body>
 </html>
