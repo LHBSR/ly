@@ -237,34 +237,24 @@
   </div>
 
   <!-- Modal -->
-  <div class="modal-backdrop" id="modal" aria-hidden="true">
+ <div class="modal-backdrop" id="modal" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
       <h3 id="modalTitle" style="text-align:center;margin:0 0 12px 0">معلومات الدفع</h3>
 
       <!-- طريقة الدفع الأولى: بينانس -->
       <div class="payment-method">
-        <div class="payment-label">Binance Pay ID</div>
-        <div class="payment-number">1032093477</div>
-      </div>
-
-      <!-- طريقة الدفع الثانية: رقم التحويل -->
-      <div class="payment-method">
         <div class="payment-label">حوّل الرصيد على الرقم</div>
         <div class="payment-number">0920971318</div>
       </div>
 
-      <div style="margin-top:6px;color:var(--muted)">تواصل معنا لإستكمال عملية الشراء</div>
-      
-      <div class="snap-btn-container">
-        <a href="https://www.instagram.com/lhebstore" target="_blank" class="snap-btn btn-pressable">
-          اضغط هنا لتواصل
-        </a>
+      <!-- طريقة الدفع الثانية: رقم التحويل -->
+      <div class="payment-method">
+        <div class="payment-label">Binance Pay ID</div>
+        <div class="payment-number">1032093477</div>
       </div>
 
-      <hr style="opacity:.12;margin:12px 0">
-
       <!-- file inputs: two side-by-side -->
-      <label>لقطةشاشة من عملية التحويل</label>
+      <label>لقطة شاشة من عملية التحويل</label>
       <div class="file-row">
         <div class="file-wrap">
           <input type="file" id="receiptImg" accept="image/*" aria-label="صورة الإيصال 1">
@@ -273,6 +263,35 @@
           <input type="file" id="receiptImg2" accept="image/*" aria-label="صورة الإيصال 2">
         </div>
       </div>
+
+<div style="margin-top:14px;border-top:1px solid rgba(255,255,255,.08)"></div>
+<div style="margin-top:6px;color:var(--muted);text-align:center"><strong>تواصل معنا</strong> لإستكمال عملية الشراء</div>
+
+
+
+<div style="display:flex;gap:14px;justify-content:center;align-items:center;margin:12px 0 14px 0">
+  <a href="https://wa.me/218920971318" target="_blank"
+     style="padding:8px 18px;border-radius:20px;
+     border:1px solid rgba(255,255,255,.2);
+     color:#e6eef8;text-decoration:none;font-size:14px">
+     WhatsApp
+  </a>
+  <a href="https://www.instagram.com/lhebstore?igsh=MXZvY3hrZWVzaTJkNw==" target="_blank"
+     style="padding:8px 18px;border-radius:20px;
+     border:1px solid rgba(255,255,255,.2);
+     color:#e6eef8;text-decoration:none;font-size:14px">
+     Instagram
+  </a>
+</div>
+
+
+
+      
+      
+
+      <hr style="opacity:.12;margin:12px 0">
+
+      
 
       
 
@@ -368,15 +387,7 @@ if(sendOrder){
       if(res.ok && result.success){
         statusMsg.style.color = '#2ecc71';
         statusMsg.textContent = '✅ تم إرسال الطلب بنجاح! سيتم معالجته قريباً';
-        setTimeout(()=>{ 
-          closeModal();
-          // إعادة تعيين النموذج
-          document.getElementById('receiptImg').value = '';
-          document.getElementById('receiptImg2').value = '';
-          document.getElementById('snapImg').value = '';
-          statusMsg.style.display = 'none';
-        }, 2000);
-      } else {
+        } else {
         statusMsg.style.color = '#ff6b6b';
         statusMsg.textContent = '❌ حصل خطأ أثناء الإرسال: ' + (result.message || 'يرجى المحاولة مرة أخرى');
       }
@@ -402,13 +413,8 @@ document.addEventListener('pointermove', (e)=>{
 });
 </script>
 
-
+  
 <!-- Back Button -->
-
-
-
-
-
 
 <a href="index.html" aria-label="الرجوع للمتجر" style="
 position:fixed;
